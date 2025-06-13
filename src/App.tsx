@@ -1,84 +1,84 @@
 import React, { useState } from 'react';
-import SymptomForm from './components/SymptomForm';
+import InitialAssessment from './components/InitialAssessment';
 import RiskAssessment from './components/RiskAssessment';
-import GeminiAdvice from './components/GeminiAdvice';
+import AIConsultation from './components/AIConsultation';
 import { PatientData, RiskLevel } from './types';
 
-type Page = 'form' | 'assessment' | 'advice';
+type Page = 'assessment' | 'risk' | 'consultation';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('form');
+  const [currentPage, setCurrentPage] = useState<Page>('assessment');
   const [patientData, setPatientData] = useState<PatientData | null>(null);
-  const [riskLevel, setRiskLevel] = useState<RiskLevel>('low');
+  const [riskLevel, setRiskLevel] = useState<RiskLevel>('LOW');
 
-  const handleFormSubmit = (data: PatientData) => {
-    setPatientData(data);
-    
-    // Risk assessment logic
+  const calculateRiskLevel = (data: PatientData): RiskLevel => {
     const selectedSymptoms = data.symptoms.filter(s => s.selected);
     const symptomCount = selectedSymptoms.length;
-    const hasCriticalSymptom = selectedSymptoms.some(s => s.name === 'difficulty breathing');
+    const hasShortnessBreath = selectedSymptoms.some(s => s.name === 'shortness_breath');
     
-    let risk: RiskLevel;
-    if (hasCriticalSymptom || symptomCount >= 4) {
-      risk = 'high';
+    if (hasShortnessBreath || symptomCount >= 4) {
+      return 'HIGH';
     } else if (symptomCount >= 2) {
-      risk = 'moderate';
+      return 'MODERATE';
     } else {
-      risk = 'low';
+      return 'LOW';
     }
-    
+  };
+
+  const handleAssessmentSubmit = (data: PatientData) => {
+    setPatientData(data);
+    const risk = calculateRiskLevel(data);
     setRiskLevel(risk);
-    setCurrentPage('assessment');
+    setCurrentPage('risk');
   };
 
-  const handleGetAdvice = () => {
-    setCurrentPage('advice');
+  const handleRiskComplete = () => {
+    setCurrentPage('consultation');
   };
 
-  const handleRestart = () => {
+  const handleStartOver = () => {
     setPatientData(null);
-    setRiskLevel('low');
-    setCurrentPage('form');
+    setRiskLevel('LOW');
+    setCurrentPage('assessment');
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="container mx-auto px-4 py-6 max-w-2xl">
         <header className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            MedAgent Lite
+            MedAgent
           </h1>
           <p className="text-gray-600 text-lg">
-            Medical Triage Assessment Tool
+            Symptom Assessment & Medical Guidance
           </p>
         </header>
 
         <main>
-          {currentPage === 'form' && (
-            <SymptomForm onSubmit={handleFormSubmit} />
+          {currentPage === 'assessment' && (
+            <InitialAssessment onSubmit={handleAssessmentSubmit} />
           )}
           
-          {currentPage === 'assessment' && patientData && (
+          {currentPage === 'risk' && patientData && (
             <RiskAssessment
               patientData={patientData}
               riskLevel={riskLevel}
-              onGetAdvice={handleGetAdvice}
-              onRestart={handleRestart}
+              onComplete={handleRiskComplete}
             />
           )}
           
-          {currentPage === 'advice' && patientData && (
-            <GeminiAdvice
+          {currentPage === 'consultation' && patientData && (
+            <AIConsultation
               patientData={patientData}
-              onRestart={handleRestart}
+              riskLevel={riskLevel}
+              onStartOver={handleStartOver}
             />
           )}
         </main>
 
         <footer className="text-center mt-12 text-sm text-gray-500">
           <p>
-            ⚠️ This tool is for informational purposes only and does not replace professional medical advice.
+            ⚠️ This tool provides general guidance only and does not replace professional medical advice.
           </p>
         </footer>
       </div>

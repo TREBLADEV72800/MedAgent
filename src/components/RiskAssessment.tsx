@@ -1,100 +1,83 @@
-import React from 'react';
-import { PatientData, RiskLevel, RiskInfo } from '../types';
+import React, { useEffect } from 'react';
+import { PatientData, RiskLevel } from '../types';
 
 interface RiskAssessmentProps {
   patientData: PatientData;
   riskLevel: RiskLevel;
-  onGetAdvice: () => void;
-  onRestart: () => void;
+  onComplete: () => void;
 }
 
-const RISK_INFO: Record<RiskLevel, RiskInfo> = {
-  low: {
-    level: 'low',
+const RISK_CONFIG = {
+  LOW: {
     color: 'text-green-800',
-    bgColor: 'bg-green-100 border-green-200',
-    message: 'Monitor your condition and rest. Contact a healthcare provider if symptoms worsen.'
+    bgColor: 'bg-green-100 border-green-300',
+    iconColor: 'bg-green-500',
+    advice: 'Monitor your condition and rest. Contact a healthcare provider if symptoms worsen or persist.'
   },
-  moderate: {
-    level: 'moderate',
-    color: 'text-yellow-800',
-    bgColor: 'bg-yellow-100 border-yellow-200',
-    message: 'Consider contacting a doctor for further evaluation of your symptoms.'
+  MODERATE: {
+    color: 'text-orange-800',
+    bgColor: 'bg-orange-100 border-orange-300',
+    iconColor: 'bg-orange-500',
+    advice: 'Consider contacting a doctor for further evaluation. Monitor symptoms closely and seek care if they worsen.'
   },
-  high: {
-    level: 'high',
+  HIGH: {
     color: 'text-red-800',
-    bgColor: 'bg-red-100 border-red-200',
-    message: 'Seek immediate medical attention. Contact emergency services if necessary.'
+    bgColor: 'bg-red-100 border-red-300',
+    iconColor: 'bg-red-500',
+    advice: 'Seek immediate medical attention. Contact emergency services or visit an emergency room if symptoms are severe.'
   }
 };
 
-export default function RiskAssessment({ 
-  patientData, 
-  riskLevel, 
-  onGetAdvice, 
-  onRestart 
-}: RiskAssessmentProps) {
-  const riskInfo = RISK_INFO[riskLevel];
+export default function RiskAssessment({ patientData, riskLevel, onComplete }: RiskAssessmentProps) {
+  const config = RISK_CONFIG[riskLevel];
   const selectedSymptoms = patientData.symptoms.filter(s => s.selected);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onComplete();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [onComplete]);
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
       <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
-        Assessment Results
+        Risk Assessment Results
       </h2>
 
       <div className="mb-6">
-        <h3 className="text-lg font-medium text-gray-700 mb-2">Patient Summary</h3>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-gray-900"><strong>Name:</strong> {patientData.name}</p>
-          <p className="text-gray-900"><strong>Age:</strong> {patientData.age} years</p>
+        <div className="bg-gray-50 rounded-lg p-4 mb-6">
+          <p className="text-gray-900 mb-2">
+            <strong>Patient:</strong> {patientData.name}, {patientData.age} years old
+          </p>
           <p className="text-gray-900">
             <strong>Symptoms:</strong> {selectedSymptoms.map(s => s.label).join(', ')}
           </p>
         </div>
       </div>
 
-      <div className={`risk-card border-2 ${riskInfo.bgColor} mb-6`} role="alert">
+      <div className={`risk-alert border-2 ${config.bgColor} mb-6`} role="alert">
         <div className="flex items-center justify-center mb-4">
-          <div className={`w-4 h-4 rounded-full mr-3 ${
-            riskLevel === 'low' ? 'bg-green-500' :
-            riskLevel === 'moderate' ? 'bg-yellow-500' : 'bg-red-500'
-          }`}></div>
-          <h3 className={`text-2xl font-bold ${riskInfo.color} uppercase`}>
-            {riskLevel} Risk
+          <div className={`w-4 h-4 rounded-full mr-3 ${config.iconColor}`}></div>
+          <h3 className={`text-2xl font-bold ${config.color}`}>
+            {riskLevel} RISK
           </h3>
         </div>
-        <p className={`text-lg ${riskInfo.color} leading-relaxed`}>
-          {riskInfo.message}
+        <p className={`text-lg ${config.color} leading-relaxed text-center`}>
+          {config.advice}
         </p>
       </div>
 
-      <div className="space-y-4">
-        <button
-          onClick={onGetAdvice}
-          className="btn-primary w-full text-lg"
-          aria-describedby="advice-help"
-        >
-          Get Additional Medical Advice
-        </button>
-        <p id="advice-help" className="text-sm text-gray-500 text-center">
-          Get personalized advice based on your symptoms and age
-        </p>
-
-        <button
-          onClick={onRestart}
-          className="btn-secondary w-full text-lg"
-        >
-          Start New Assessment
-        </button>
-      </div>
-
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-800">
-          <strong>Important:</strong> This assessment is for informational purposes only. 
-          Always consult with a qualified healthcare professional for medical advice, 
-          diagnosis, or treatment.
+      <div className="text-center">
+        <div className="inline-flex items-center text-blue-600 mb-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
+          <span className="text-lg font-medium">
+            Preparing AI consultation...
+          </span>
+        </div>
+        <p className="text-gray-500 text-sm">
+          Automatically advancing to personalized medical guidance
         </p>
       </div>
     </div>

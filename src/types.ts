@@ -10,11 +10,4 @@ export interface PatientData {
   symptoms: Symptom[];
 }
 
-export type RiskLevel = 'low' | 'moderate' | 'high';
-
-export interface RiskInfo {
-  level: RiskLevel;
-  color: string;
-  bgColor: string;
-  message: string;
-}
+export type RiskLevel = 'LOW' | 'MODERATE' | 'HIGH';
